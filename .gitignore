@@ -1,0 +1,27 @@
+# Rust/Cargo
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs/Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Pumpkin plugins spécifiques
+world/
+data/
+logs/
+
+# Autres fichiers temporaires
+*.tmp
+*.bak 
