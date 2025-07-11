@@ -1,4 +1,5 @@
 use pumpkin_util::text::{color::NamedColor, TextComponent};
+use pumpkin_util::text::color::{Color, RGBColor};
 
 /// Parse Minecraft color codes from a string and convert them to a TextComponent
 pub fn parse_color_codes(input: &str) -> TextComponent {
@@ -164,6 +165,77 @@ fn apply_format_code(component: TextComponent, format: FormatCode) -> TextCompon
         FormatCode::Strikethrough => component.strikethrough(),
         FormatCode::Obfuscated => component.obfuscated(),
     }
+}
+
+/// Applique un gradient arc-en-ciel lettre par lettre sur le texte.
+pub fn apply_rainbow_gradient(text: &str) -> TextComponent {
+    let chars: Vec<char> = text.chars().collect();
+    let len = chars.len().max(1);
+    let mut component = TextComponent::text("");
+    for (i, c) in chars.iter().enumerate() {
+        // HSV: H varie de 0 à 360 sur le texte
+        let hue = (i as f32) / (len as f32);
+        let rgb = hsv_to_rgb(hue, 1.0, 1.0);
+        let color = Color::Rgb(RGBColor::new(rgb.0, rgb.1, rgb.2));
+        let letter = TextComponent::text(c.to_string()).color(color);
+        component = component.add_child(letter);
+    }
+    component
+}
+
+/// Applique un gradient "feu" (jaune -> orange -> rouge) lettre par lettre sur le texte.
+pub fn apply_fire_gradient(text: &str) -> TextComponent {
+    let chars: Vec<char> = text.chars().collect();
+    let len = chars.len().max(1);
+    let mut component = TextComponent::text("");
+    for (i, c) in chars.iter().enumerate() {
+        // Interpolation: jaune (#FFFF00) -> orange (#FF8000) -> rouge (#FF0000)
+        let t = (i as f32) / (len as f32);
+        let rgb = if t < 0.5 {
+            lerp_rgb((255,255,0), (255,128,0), t*2.0)
+        } else {
+            lerp_rgb((255,128,0), (255,0,0), (t-0.5)*2.0)
+        };
+        let color = Color::Rgb(RGBColor::new(rgb.0, rgb.1, rgb.2));
+        let letter = TextComponent::text(c.to_string()).color(color);
+        component = component.add_child(letter);
+    }
+    component
+}
+
+// Utilitaires
+fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (u8, u8, u8) {
+    let h = h * 360.0;
+    let c = v * s;
+    let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
+    let m = v - c;
+    let (r1, g1, b1) = match h as u32 {
+        0..=59 => (c, x, 0.0),
+        60..=119 => (x, c, 0.0),
+        120..=179 => (0.0, c, x),
+        180..=239 => (0.0, x, c),
+        240..=299 => (x, 0.0, c),
+        300..=359 => (c, 0.0, x),
+        _ => (0.0, 0.0, 0.0),
+    };
+    (
+        ((r1 + m) * 255.0) as u8,
+        ((g1 + m) * 255.0) as u8,
+        ((b1 + m) * 255.0) as u8,
+    )
+}
+
+fn lerp_rgb(a: (u8,u8,u8), b: (u8,u8,u8), t: f32) -> (u8,u8,u8) {
+    let t = t.clamp(0.0, 1.0);
+    (
+        (a.0 as f32 + (b.0 as f32 - a.0 as f32) * t) as u8,
+        (a.1 as f32 + (b.1 as f32 - a.1 as f32) * t) as u8,
+        (a.2 as f32 + (b.2 as f32 - a.2 as f32) * t) as u8,
+    )
+}
+
+fn rgb_to_hex((r,g,b): (u8,u8,u8)) -> String {
+    format!("#{:02X}{:02X}{:02X}", r, g, b)
 }
 
 #[cfg(test)]
