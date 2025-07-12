@@ -136,7 +136,7 @@ fn parse_color_code(ch: char) -> Option<NamedColor> {
 }
 
 /// Parse a format code character and return the corresponding format type
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 enum FormatCode {
     Bold,
     Underlined,
@@ -170,11 +170,11 @@ fn apply_format_code(component: TextComponent, format: FormatCode) -> TextCompon
 /// Applique un gradient arc-en-ciel lettre par lettre sur le texte.
 pub fn apply_rainbow_gradient(text: &str) -> TextComponent {
     let chars: Vec<char> = text.chars().collect();
-    let len = chars.len().max(1);
+    let _len = chars.len().max(1);
     let mut component = TextComponent::text("");
     for (i, c) in chars.iter().enumerate() {
         // HSV: H varie de 0 à 360 sur le texte
-        let hue = (i as f32) / (len as f32);
+        let hue = (i as f32) / (chars.len().max(1) as f32);
         let rgb = hsv_to_rgb(hue, 1.0, 1.0);
         let color = Color::Rgb(RGBColor::new(rgb.0, rgb.1, rgb.2));
         let letter = TextComponent::text(c.to_string()).color(color);
@@ -186,11 +186,11 @@ pub fn apply_rainbow_gradient(text: &str) -> TextComponent {
 /// Applique un gradient "feu" (jaune -> orange -> rouge) lettre par lettre sur le texte.
 pub fn apply_fire_gradient(text: &str) -> TextComponent {
     let chars: Vec<char> = text.chars().collect();
-    let len = chars.len().max(1);
+    let _len = chars.len().max(1);
     let mut component = TextComponent::text("");
     for (i, c) in chars.iter().enumerate() {
         // Interpolation: jaune (#FFFF00) -> orange (#FF8000) -> rouge (#FF0000)
-        let t = (i as f32) / (len as f32);
+        let t = (i as f32) / (chars.len().max(1) as f32);
         let rgb = if t < 0.5 {
             lerp_rgb((255,255,0), (255,128,0), t*2.0)
         } else {
@@ -204,7 +204,7 @@ pub fn apply_fire_gradient(text: &str) -> TextComponent {
 }
 
 // Utilitaires
-fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (u8, u8, u8) {
+pub fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (u8, u8, u8) {
     let h = h * 360.0;
     let c = v * s;
     let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
@@ -225,7 +225,7 @@ fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (u8, u8, u8) {
     )
 }
 
-fn lerp_rgb(a: (u8,u8,u8), b: (u8,u8,u8), t: f32) -> (u8,u8,u8) {
+pub fn lerp_rgb(a: (u8,u8,u8), b: (u8,u8,u8), t: f32) -> (u8,u8,u8) {
     let t = t.clamp(0.0, 1.0);
     (
         (a.0 as f32 + (b.0 as f32 - a.0 as f32) * t) as u8,
@@ -234,9 +234,101 @@ fn lerp_rgb(a: (u8,u8,u8), b: (u8,u8,u8), t: f32) -> (u8,u8,u8) {
     )
 }
 
-fn rgb_to_hex((r,g,b): (u8,u8,u8)) -> String {
-    format!("#{:02X}{:02X}{:02X}", r, g, b)
+// Fonction pour appliquer un gradient personnalisé
+pub async fn apply_custom_gradient(text: &str, gradient_name: &str) -> TextComponent {
+    let config = crate::storage::PLUGIN_CONFIG.lock().await;
+    
+    if let Some(gradient_config) = config.gradients.get(gradient_name) {
+        match gradient_config.method {
+            crate::config::GradientMethod::Hsv => {
+                if let (Some(start_hue), Some(end_hue), Some(saturation), Some(value)) = 
+                    (gradient_config.start_hue, gradient_config.end_hue, gradient_config.saturation, gradient_config.value) {
+                    apply_hsv_gradient(text, start_hue, end_hue, saturation, value)
+                } else {
+                    // Fallback vers rainbow par défaut
+                    apply_rainbow_gradient(text)
+                }
+            },
+            crate::config::GradientMethod::RgbInterpolation => {
+                if let Some(colors) = &gradient_config.colors {
+                    apply_rgb_gradient(text, colors)
+                } else {
+                    // Fallback vers fire par défaut
+                    apply_fire_gradient(text)
+                }
+            }
+        }
+    } else {
+        // Gradient non trouvé, retourner le texte normal
+        TextComponent::text(text.to_string())
+    }
 }
+
+// Fonction pour appliquer un gradient HSV personnalisé
+fn apply_hsv_gradient(text: &str, start_hue: f32, end_hue: f32, saturation: f32, value: f32) -> TextComponent {
+    let chars: Vec<char> = text.chars().collect();
+    let len = chars.len().max(1);
+    let mut component = TextComponent::text("");
+    
+    for (i, c) in chars.iter().enumerate() {
+        let t = (i as f32) / (len as f32);
+        let hue = start_hue + (end_hue - start_hue) * t;
+        let rgb = hsv_to_rgb(hue, saturation, value);
+        let color = Color::Rgb(RGBColor::new(rgb.0, rgb.1, rgb.2));
+        let letter = TextComponent::text(c.to_string()).color(color);
+        component = component.add_child(letter);
+    }
+    component
+}
+
+// Fonction pour appliquer un gradient RGB personnalisé
+fn apply_rgb_gradient(text: &str, colors: &[[u8; 3]]) -> TextComponent {
+    let chars: Vec<char> = text.chars().collect();
+    let len = chars.len().max(1);
+    let mut component = TextComponent::text("");
+    
+    for (i, c) in chars.iter().enumerate() {
+        let t = (i as f32) / (len as f32);
+        let rgb = interpolate_rgb_colors(colors, t);
+        let color = Color::Rgb(RGBColor::new(rgb.0, rgb.1, rgb.2));
+        let letter = TextComponent::text(c.to_string()).color(color);
+        component = component.add_child(letter);
+    }
+    component
+}
+
+// Fonction pour interpoler entre plusieurs couleurs RGB
+fn interpolate_rgb_colors(colors: &[[u8; 3]], t: f32) -> (u8, u8, u8) {
+    if colors.is_empty() {
+        return (255, 255, 255);
+    }
+    if colors.len() == 1 {
+        return (colors[0][0], colors[0][1], colors[0][2]);
+    }
+    
+    let t = t.clamp(0.0, 1.0);
+    let segment_size = 1.0 / (colors.len() - 1) as f32;
+    let segment = (t / segment_size).floor() as usize;
+    let segment_t = (t % segment_size) / segment_size;
+    
+    if segment >= colors.len() - 1 {
+        let last_color = colors[colors.len() - 1];
+        return (last_color[0], last_color[1], last_color[2]);
+    }
+    
+    let color1 = colors[segment];
+    let color2 = colors[segment + 1];
+    
+    let r = (color1[0] as f32 * (1.0 - segment_t) + color2[0] as f32 * segment_t) as u8;
+    let g = (color1[1] as f32 * (1.0 - segment_t) + color2[1] as f32 * segment_t) as u8;
+    let b = (color1[2] as f32 * (1.0 - segment_t) + color2[2] as f32 * segment_t) as u8;
+    
+    (r, g, b)
+}
+
+// fn rgb_to_hex((r,g,b): (u8,u8,u8)) -> String {
+//     format!("#{:02X}{:02X}{:02X}", r, g, b)
+// }
 
 #[cfg(test)]
 mod tests {
@@ -279,5 +371,13 @@ mod tests {
         assert_eq!(parse_format_code('n'), Some(FormatCode::Underlined));
         assert_eq!(parse_format_code('o'), Some(FormatCode::Italic));
         assert_eq!(parse_format_code('x'), None);
+    }
+
+    #[test]
+    fn test_apply_glowing_effect() {
+        let result = apply_glowing_effect("Hello");
+        let text = result.get_text();
+        assert!(!text.is_empty());
+        assert_eq!(text, "Hello");
     }
 } 
