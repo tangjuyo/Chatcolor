@@ -1,127 +1,64 @@
-# ChatColor Plugin for Pumpkin
+# ChatColor Plugin
 
-A chat color plugin for Pumpkin servers that allows players to customize their chat and name colors with persistent storage.
+A minimalist Pumpkin plugin that allows OP players to customize their chat and/or name color on your Minecraft server.
 
 ## Features
-
-- **Chat Colors**: Set custom colors for your chat messages
-- **Name Colors**: Set custom colors for your display name
-- **Gradients**: Support for rainbow and fire gradient effects
-- **Persistent Storage**: Player colors are saved to YAML files and restored on server restart
-- **Permission System**: Control who can use colors with permissions
-- **Color Codes**: Support for Minecraft color codes (`&a`, `&b`, `&c`, etc.)
-
-## Commands
-
-### `/chatcolor <color|style>`
-Set your default chat color or gradient style.
-
-**Available colors:**
-- `black`, `dark_blue`, `dark_green`, `dark_aqua`, `dark_red`, `dark_purple`
-- `gold`, `gray`, `dark_gray`, `blue`, `green`, `aqua`, `red`
-- `light_purple`, `yellow`, `white`
-- `rainbow` - Rainbow gradient effect
-- `fire` - Fire gradient effect
-
-**Examples:**
-```
-/chatcolor red
-/chatcolor rainbow
-/chatcolor fire
-```
-
-### `/namecolor <color|style>`
-Set your display name color or gradient style.
-
-**Available colors:** Same as `/chatcolor`
-
-**Examples:**
-```
-/namecolor blue
-/namecolor rainbow
-/namecolor fire
-```
-
-## Color Codes
-
-| Code | Color | Name |
-|------|-------|------|
-| `&0` | Black | Black |
-| `&1` | Dark Blue | Dark Blue |
-| `&2` | Dark Green | Dark Green |
-| `&3` | Dark Aqua | Dark Aqua |
-| `&4` | Dark Red | Dark Red |
-| `&5` | Dark Purple | Dark Purple |
-| `&6` | Gold | Gold |
-| `&7` | Gray | Gray |
-| `&8` | Dark Gray | Dark Gray |
-| `&9` | Blue | Blue |
-| `&a` | Green | Green |
-| `&b` | Aqua | Aqua |
-| `&c` | Red | Red |
-| `&d` | Light Purple | Light Purple |
-| `&e` | Yellow | Yellow |
-| `&f` | White | White |
-
-## Formatting Codes
-
-| Code | Effect |
-|------|--------|
-| `&l` | Bold |
-| `&n` | Underlined |
-| `&o` | Italic |
-| `&m` | Strikethrough |
-| `&k` | Obfuscated |
-| `&r` | Reset |
-
-## Permissions
-
-- `chatcolor:command.chatcolor` - Allows players to use the /chatcolor command
-- `chatcolor:command.namecolor` - Allows players to use the /namecolor command
-
-## Configuration Files
-
-The plugin creates two YAML files in the `plugins/ChatColor/` directory:
-
-### `config.yml`
-```yaml
-save_interval: 300  # Save interval in seconds (default: 5 minutes)
-auto_save: true     # Enable automatic saving
-```
-
-### `data.yml`
-```yaml
-players:
-  "player-uuid-here":
-    uuid: "player-uuid-here"
-    chat_color: "red"      # or "rainbow", "fire", etc.
-    name_color: "blue"     # or "rainbow", "fire", etc.
-```
-
-## Data Persistence
-
-- Player colors are automatically saved when changed
-- Data is loaded when the server starts
-- Data is saved when the server shuts down
-- Each player's UUID is used as the unique identifier
-
-## Installation
-
-1. Compile the plugin: `cargo build --release`
-2. Copy the compiled library (`libchat_color.so`) to your Pumpkin plugins directory
-3. Restart your server
-4. The plugin will automatically create the configuration files on first run
+- **Only OPs** can use `/chatcolor` and `/namecolor`.
+- **No default color**: if a player has not chosen a color, their chat and name remain vanilla (unmodified).
+- **Independent settings**: a player can set only chat color, only name color, or both.
+- **No custom permissions**: only native Pumpkin permissions, OPs only.
+- **No tab-completion** for colors.
+- **No forced color on join**: the plugin does nothing until a player chooses a color.
 
 ## Usage
 
-Players can use color codes in their chat messages:
+- `/chatcolor <color|gradient>`: change your chat message color.
+- `/namecolor <color|gradient>`: change your name color in chat.
 
+Examples:
 ```
-&aHello &bWorld! &lThis is bold!
+/chatcolor red
+/chatcolor rainbow
+/namecolor ocean
 ```
 
-This will display as: **Hello World!** with colors and formatting applied.
+## Configuration
 
-## License
+The `config.yml` file defines available simple colors and gradients:
 
-This project is licensed under the MIT License. 
+```yaml
+simple_colors:
+  red: "§c"
+  blue: "§9"
+  green: "§a"
+  # ...
+gradients:
+  rainbow:
+    type: "hsv"
+    start_hue: 0.0
+    end_hue: 360.0
+    saturation: 1.0
+    value: 1.0
+  fire:
+    type: "rgb"
+    colors:
+      - [255, 0, 0]
+      - [255, 165, 0]
+      - [255, 255, 0]
+  # ...
+```
+
+## How it works
+- If the player has not chosen a color, the plugin **does not intercept** chat: vanilla behavior is preserved.
+- If the player has set a chat or name color, only the chosen field is modified.
+- Colors are persisted in `data.yml`.
+
+## Robustness
+- No crash possible if the config is incomplete or the player has no data.
+- The plugin never blocks vanilla chat.
+
+## Dependencies
+- Pumpkin (Rust Minecraft server)
+
+## Author
+- Plugin adapted and maintained for Pumpkin by [your name here] 
