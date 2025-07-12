@@ -2,13 +2,20 @@
 
 A minimalist Pumpkin plugin that allows OP players to customize their chat and/or name color on your Minecraft server.
 
-## Features
-- **Only OPs** can use `/chatcolor` and `/namecolor`.
+## SETUP
+- when running for the first time the plugin, config.yml and data.yml will be created.
+- You need to copy paste the config.yml in the github to your config.yml ( the default one will not work correctly )
+
+## How it works
+- colors are created on the config.yml so you can play and create your own set of colors and gradients
+
+## Incoming Features
+- **Only OPs** Right now only ops can use `/chatcolor` and `/namecolor`.
 - **No default color**: if a player has not chosen a color, their chat and name remain vanilla (unmodified).
-- **Independent settings**: a player can set only chat color, only name color, or both.
-- **No custom permissions**: only native Pumpkin permissions, OPs only.
-- **No tab-completion** for colors.
-- **No forced color on join**: the plugin does nothing until a player chooses a color.
+- **Independent settings**: a player can set only chat color, only name color, or both. ( might add group or stuff like that )
+- **custom permissions**: Right now only native Pumpkin permissions ( OPs only ).
+- **tab-completion** for colors.
+- **Fixing the config.yml**: the default generation config.yml isnt working properly
 
 ## Usage
 
@@ -48,17 +55,8 @@ gradients:
   # ...
 ```
 
-## How it works
-- If the player has not chosen a color, the plugin **does not intercept** chat: vanilla behavior is preserved.
-- If the player has set a chat or name color, only the chosen field is modified.
-- Colors are persisted in `data.yml`.
-
-## Robustness
-- No crash possible if the config is incomplete or the player has no data.
-- The plugin never blocks vanilla chat.
-
 ## Dependencies
 - Pumpkin (Rust Minecraft server)
 
 ## Author
-- Plugin adapted and maintained for Pumpkin by [your name here] 
+- Plugin maintained by tangjuyo
