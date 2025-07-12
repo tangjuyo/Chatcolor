@@ -69,11 +69,5 @@ gradients:
 # Plugin settings
 settings:
   # Default colors for new players
-  default_chat_color: "blue"
-  default_name_color: "blue"
-
-  # Permissions required for different features
-  permissions:
-    chat_color: "chatcolor.use"
-    name_color: "namecolor.use"
-    admin: "chatcolor.admin"
+  default_chat_color: "white"
+  default_name_color: "white"
