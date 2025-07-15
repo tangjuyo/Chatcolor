@@ -55,6 +55,40 @@ gradients:
   # ...
 ```
 
+## Ajouter une nouvelle clé dans la config
+
+1. Ajoutez la clé dans `src/resources/config.yml` :
+
+```yaml
+settings:
+  default_chat_color: "white"
+  nouvelle_option: true
+```
+
+2. Ajoutez le champ dans la struct `Settings` de `src/config/mod.rs` :
+
+```rust
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Settings {
+    pub default_chat_color: String,
+    pub default_name_color: String,
+    pub nouvelle_option: bool, // <-- Ajout
+}
+```
+
+3. Accédez à la valeur dans le code :
+
+```rust
+if let Some(config) = &self.config {
+    let nouvelle_option = config.settings.nouvelle_option;
+    if nouvelle_option {
+        // ...
+    }
+}
+```
+
+**N'oubliez pas de recompiler le plugin après chaque modification de la structure !**
+
 ## Dependencies
 - Pumpkin (Rust Minecraft server)
 

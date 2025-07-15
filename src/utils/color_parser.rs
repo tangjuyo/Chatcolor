@@ -235,33 +235,10 @@ pub fn lerp_rgb(a: (u8,u8,u8), b: (u8,u8,u8), t: f32) -> (u8,u8,u8) {
 }
 
 // Fonction pour appliquer un gradient personnalisé
-pub async fn apply_custom_gradient(text: &str, gradient_name: &str) -> TextComponent {
-    let config = crate::storage::PLUGIN_CONFIG.lock().await;
-    
-    if let Some(gradient_config) = config.gradients.get(gradient_name) {
-        match gradient_config.method {
-            crate::config::GradientMethod::Hsv => {
-                if let (Some(start_hue), Some(end_hue), Some(saturation), Some(value)) = 
-                    (gradient_config.start_hue, gradient_config.end_hue, gradient_config.saturation, gradient_config.value) {
-                    apply_hsv_gradient(text, start_hue, end_hue, saturation, value)
-                } else {
-                    // Fallback vers rainbow par défaut
-                    apply_rainbow_gradient(text)
-                }
-            },
-            crate::config::GradientMethod::RgbInterpolation => {
-                if let Some(colors) = &gradient_config.colors {
-                    apply_rgb_gradient(text, colors)
-                } else {
-                    // Fallback vers fire par défaut
-                    apply_fire_gradient(text)
-                }
-            }
-        }
-    } else {
-        // Gradient non trouvé, retourner le texte normal
-        TextComponent::text(text.to_string())
-    }
+pub async fn apply_custom_gradient(text: &str, _gradient_name: &str) -> TextComponent {
+    // TODO: Accéder à la config du plugin
+    // Pour l'instant, retourner le texte sans modification
+    TextComponent::text(text.to_string())
 }
 
 // Fonction pour appliquer un gradient HSV personnalisé

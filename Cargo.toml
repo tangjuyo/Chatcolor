@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-pumpkin = { path = "../../Pumpkin/pumpkin" }
-pumpkin-util = { path = "../../Pumpkin/pumpkin-util" }
-pumpkin-api-macros = { path = "../../Pumpkin/pumpkin-api-macros" }
-pumpkin-world = { path = "../../Pumpkin/pumpkin-world" }
-pumpkin-data = { path = "../../Pumpkin/pumpkin-data" }
-pumpkin-protocol = { path = "../../Pumpkin/pumpkin-protocol" }
-pumpkin-inventory = { path = "../../Pumpkin/pumpkin-inventory" }
+pumpkin = { path = "../../PumpkinCE/pumpkin" }
+pumpkin-util = { path = "../../PumpkinCE/pumpkin-util" }
+pumpkin-api-macros = { path = "../../PumpkinCE/pumpkin-api-macros" }
+pumpkin-world = { path = "../../PumpkinCE/pumpkin-world" }
+pumpkin-data = { path = "../../PumpkinCE/pumpkin-data" }
+pumpkin-protocol = { path = "../../PumpkinCE/pumpkin-protocol" }
+pumpkin-inventory = { path = "../../PumpkinCE/pumpkin-inventory" }
 
 async-trait = "0.1"
 tokio = { version = "1.46", features = ["rt-multi-thread"] }

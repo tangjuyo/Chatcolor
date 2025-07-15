@@ -47,7 +47,7 @@ pub struct GradientConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PluginConfig {
+pub struct ChatColorConfig {
     pub save_interval: u64, // en secondes
     pub auto_save: bool,
     pub simple_colors: HashMap<String, String>,
@@ -59,4 +59,14 @@ pub struct PluginConfig {
 pub struct Settings {
     pub default_chat_color: String,
     pub default_name_color: String,
+}
+
+impl ChatColorConfig {
+    /// Convert from Pumpkin's PluginConfig to ChatColorConfig
+    pub fn from_pumpkin_config(config: &serde_yaml::Value) -> Result<Self, String> {
+        // For now, we'll use a simple approach
+        // In a real implementation, we'd parse the YAML data properly
+        serde_yaml::from_value(config.clone())
+            .map_err(|e| format!("Failed to parse config: {}", e))
+    }
 } 
