@@ -9,7 +9,8 @@ use pumpkin::command::{
 };
 use pumpkin_util::text::color::NamedColor;
 use pumpkin_util::permission::PermissionLvl;
-use crate::{storage::PLAYER_NAME_COLORS, config::ChatColorStyle};
+use crate::{storage::{PLAYER_NAME_COLORS, PLUGIN_CONFIG}, config::ChatColorStyle};
+use crate::utils::save_data;
 
 // Fonction pour parser un code couleur Minecraft en NamedColor
 fn parse_color_code_section(code: &str) -> Option<NamedColor> {
@@ -38,30 +39,39 @@ fn parse_color_code_section(code: &str) -> Option<NamedColor> {
     }
 }
 
-// Fonction pour obtenir le style depuis la configuration (pour l'instant, valeurs par défaut)
+// Fonction pour obtenir le style depuis la configuration
 async fn get_style_from_config(color_name: &str) -> Option<ChatColorStyle> {
+    let config = PLUGIN_CONFIG.lock().await;
     let color_name = color_name.to_lowercase();
     
-    // Pour l'instant, utiliser des valeurs par défaut
-    match color_name.as_str() {
-        "red" => Some(ChatColorStyle::Simple(NamedColor::Red)),
-        "blue" => Some(ChatColorStyle::Simple(NamedColor::Blue)),
-        "green" => Some(ChatColorStyle::Simple(NamedColor::Green)),
-        "yellow" => Some(ChatColorStyle::Simple(NamedColor::Yellow)),
-        "purple" => Some(ChatColorStyle::Simple(NamedColor::LightPurple)),
-        "aqua" => Some(ChatColorStyle::Simple(NamedColor::Aqua)),
-        "white" => Some(ChatColorStyle::Simple(NamedColor::White)),
-        "gray" => Some(ChatColorStyle::Simple(NamedColor::Gray)),
-        _ => None,
+    // Vérifier d'abord les couleurs simples
+    if let Some(color_code) = config.simple_colors.get(&color_name) {
+        if let Some(named_color) = parse_color_code_section(color_code) {
+            return Some(ChatColorStyle::Simple(named_color));
+        }
     }
+    
+    // Vérifier ensuite les gradients
+    if config.gradients.contains_key(&color_name) {
+        return Some(ChatColorStyle::CustomGradient(color_name));
+    }
+    
+    None
 }
 
-// Fonction pour obtenir la liste des couleurs disponibles (pour l'instant, valeurs par défaut)
+// Fonction pour obtenir la liste des couleurs disponibles
 async fn get_available_colors() -> Vec<String> {
-    vec!["red", "blue", "green", "yellow", "purple", "aqua", "white", "gray", "rainbow", "fire"]
-        .into_iter()
-        .map(|s| s.to_string())
-        .collect()
+    let config = PLUGIN_CONFIG.lock().await;
+    let mut colors = Vec::new();
+    
+    // Ajouter les couleurs simples
+    colors.extend(config.simple_colors.keys().cloned());
+    
+    // Ajouter les gradients
+    colors.extend(config.gradients.keys().cloned());
+    
+    log::info!("[ChatColor] Available colors: {:?}", colors);
+    colors
 }
 
 const NAMES: [&str; 1] = ["namecolor"];
@@ -118,9 +128,10 @@ impl CommandExecutor for NameColorExecutor {
             };
             p.send_system_message(&pumpkin_util::text::TextComponent::text(feedback)).await;
             
-            // TODO: Sauvegarder les données après le changement
-            // Note: La sauvegarde se fait maintenant dans on_unload
-            // Pour une sauvegarde immédiate, il faudrait passer le DataManager en paramètre
+            // Sauvegarder les données après le changement
+            if let Err(e) = save_data().await {
+                log::error!("[ChatColor] Failed to save player data: {}", e);
+            }
         } else {
             // Afficher la liste des couleurs disponibles
             let available_colors = get_available_colors().await;

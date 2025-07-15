@@ -3,8 +3,10 @@ use pumpkin::plugin::{
     player::player_chat::PlayerChatEvent,
     EventHandler, Cancellable
 };
-use crate::{storage::{PLAYER_COLORS, PLAYER_NAME_COLORS}, config::ChatColorStyle};
+use pumpkin_util::text::color::NamedColor;
+use crate::{storage::{PLAYER_COLORS, PLAYER_NAME_COLORS, PLUGIN_CONFIG}, config::ChatColorStyle};
 use crate::utils::{apply_rainbow_gradient, apply_fire_gradient, parse_color_codes, apply_custom_gradient, color_to_code};
+use crate::commands::chatcolor::get_style_from_config;
 
 pub struct ChatEventHandler;
 
