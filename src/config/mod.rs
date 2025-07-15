@@ -62,7 +62,7 @@ pub struct Settings {
 }
 
 impl ChatColorConfig {
-    /// Convert from Pumpkin's PluginConfig to ChatColorConfig
+    /// Convert from Pumpkin's Configuration to ChatColorConfig
     pub fn from_pumpkin_config(config: &serde_yaml::Value) -> Result<Self, String> {
         // For now, we'll use a simple approach
         // In a real implementation, we'd parse the YAML data properly

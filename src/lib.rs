@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use pumpkin::plugin::{
     Context, EventPriority
 };
-use pumpkin::plugin::config::{ConfigurablePlugin, PluginConfig};
+use pumpkin::plugin::configuration::{ConfigurablePlugin, Configuration};
 use pumpkin_api_macros::{plugin_impl, plugin_method};
 use pumpkin_util::permission::{Permission, PermissionDefault, PermissionLvl};
 
@@ -151,7 +151,7 @@ async fn on_unload(&mut self, _context: &Context) -> Result<(), String> {
 #[plugin_impl]
 pub struct Plugin {
     config: Option<ChatColorConfig>,
-    messages: Option<PluginConfig>,
+    messages: Option<Configuration>,
     data_manager: data::DataManager,
 }
 
